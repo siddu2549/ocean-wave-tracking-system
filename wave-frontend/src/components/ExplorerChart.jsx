@@ -2,12 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 
 export default function ExplorerChart({ data, title = "Chart" }) {
+  
 console.log("ExplorerChart render");
 console.log("ExplorerChart instance", Math.random());
 
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
   const svgRef = useRef(null);
+  const tooltipRef = useRef(null);
 
   const [zoomDomain, setZoomDomain] = useState(null);
   const [activeSeries, setActiveSeries] = useState(null);
@@ -144,6 +146,69 @@ useEffect(() => {
     svg.append("g")
       .attr("transform", `translate(${margin.left},${margin.top})`)
       .call(axisY);
+      // ---------- TOOLTIP + CROSSHAIR ----------
+const tooltip = tooltipRef.current;
+
+// vertical guide line
+const focusLine = svg.append("line")
+  .attr("stroke", "#2563eb")
+  .attr("stroke-width", 1)
+  .attr("y1", margin.top)
+  .attr("y2", height + margin.top)
+  .style("opacity", 0);
+
+// overlay for mouse tracking
+svg.append("rect")
+  .attr("x", margin.left)
+  .attr("y", margin.top)
+  .attr("width", width)
+  .attr("height", height)
+  .attr("fill", "transparent")
+  .on("mousemove", function(event) {
+
+    const [mx] = d3.pointer(event);
+
+    if (mx < margin.left || mx > width + margin.left) return;
+
+    const hoveredTime = x.invert(mx - margin.left);
+
+    // Find nearest data point based on pixel distance
+let nearestIndex = 0;
+let minDistance = Infinity;
+
+visible1.forEach((d, i) => {
+  const distance = Math.abs(x(d.time) - (mx - margin.left));
+  if (distance < minDistance) {
+    minDistance = distance;
+    nearestIndex = i;
+  }
+});
+
+const p1 = visible1[nearestIndex];
+const p2 = visible2[nearestIndex];
+
+    if (!p1 || !p2) return;
+
+    focusLine
+      .attr("x1", mx)
+      .attr("x2", mx)
+      .style("opacity", 1);
+
+    tooltip.innerHTML = `
+      <div><strong>${d3.timeFormat("%b %d %H:%M")(p1.time)}</strong></div>
+      <div style="color:#2563eb">Buoy: ${p1.value.toFixed(2)}</div>
+      <div style="color:#dc2626">Model: ${p2.value.toFixed(2)}</div>
+    `;
+
+    tooltip.style.left = mx + 10 + "px";
+    tooltip.style.top = margin.top + 10 + "px";
+    tooltip.classList.remove("hidden");
+
+  })
+  .on("mouseleave", function() {
+    tooltip.classList.add("hidden");
+    focusLine.style("opacity", 0);
+  });
 
     // ---------- BRUSH ZOOM ----------
     const brush = d3.brushX()
@@ -188,19 +253,28 @@ useEffect(() => {
   {title}
 </h2>
 
-      <div className="relative">
-        <canvas
-          ref={canvasRef}
-          className="absolute pointer-events-none"
-          style={{ left: 60, top: 20 }}
-        />
-        <svg
-          ref={svgRef}
-          width="100%"
-          height="420"
-          className="cursor-crosshair"
-        />
-      </div>
+      <div className="relative h-[420px]">
+
+  <canvas
+    ref={canvasRef}
+    className="absolute pointer-events-none"
+    style={{ left: 60, top: 20 }}
+  />
+
+ <svg
+  ref={svgRef}
+  width="100%"
+  height="420"
+  className="absolute left-0 top-0 cursor-crosshair"
+/>
+
+  {/* 🔵 ADD THIS TOOLTIP DIV */}
+  <div
+    ref={tooltipRef}
+    className="absolute hidden bg-slate-900 text-white text-xs px-3 py-2 rounded-md shadow-lg border border-slate-700 pointer-events-none z-50"
+  />
+
+</div>
     </div>
   );
 }

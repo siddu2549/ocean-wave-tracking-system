@@ -1,13 +1,33 @@
 import ExplorerChart from "./ExplorerChart";
 
+
 export default function OceanCharts({ data }) {
   if (!data) return null;
-
+console.log("OceanCharts data:", data);
   return (
-    <div className="w-full flex flex-col gap-8">
-
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
+    {/* Latitude */}
+<div className="bg-white rounded-xl shadow-md p-4">
+  <ExplorerChart
+    data={{
+      source1: { time: data.source1.time, hm0: data.source1.lat },
+      source2: { time: data.source2.time, hm0: data.source2.lat }
+    }}
+    title="Latitude"
+  />
+</div>
+{/* Longitude */}
+<div className="bg-white rounded-xl shadow-md p-4">
+  <ExplorerChart
+    data={{
+      source1: { time: data.source1.time, hm0: data.source1.lon },
+      source2: { time: data.source2.time, hm0: data.source2.lon }
+    }}
+    title="Longitude"
+  />
+</div>
       {/* Wave Height */}
-      <div className="w-full">
+     <div className="bg-white rounded-xl shadow-md p-4">
         <ExplorerChart
           data={{
             source1: { time: data.source1.time, hm0: data.source1.hm0 },
@@ -18,7 +38,7 @@ export default function OceanCharts({ data }) {
       </div>
 
       {/* Wave Period */}
-      <div className="w-full">
+      <div className="bg-white rounded-xl shadow-md p-4">
         <ExplorerChart
           data={{
             source1: { time: data.source1.time, hm0: data.source1.t1 },
@@ -29,7 +49,7 @@ export default function OceanCharts({ data }) {
       </div>
 
       {/* Wave Direction */}
-      <div className="w-full">
+      <div className="bg-white rounded-xl shadow-md p-4">
         <ExplorerChart
           data={{
             source1: { time: data.source1.time, hm0: data.source1.dirp },
@@ -40,7 +60,7 @@ export default function OceanCharts({ data }) {
       </div>
 
       {/* Current Speed */}
-      <div className="w-full">
+    <div className="bg-white rounded-xl shadow-md p-4">
         <ExplorerChart
           data={{
             source1: { time: data.source1.time, hm0: data.source1.cs },
@@ -50,6 +70,7 @@ export default function OceanCharts({ data }) {
         />
       </div>
 
+      
     </div>
   );
 }
